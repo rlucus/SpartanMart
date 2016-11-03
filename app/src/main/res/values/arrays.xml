@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="categories">
+        <item>Appliances</item>
+        <item>Food</item>
+        <item>Automobiles</item>
+        <item>Toys</item>
+        <item>Electronics</item>
+        <item>Video Games</item>
+        <item>Utilities</item>
+        <item>Tickets</item>
+    </string-array>
+
+</resources>

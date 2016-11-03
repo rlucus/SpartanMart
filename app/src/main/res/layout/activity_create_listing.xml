@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="@+id/activity_create_listing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        tools:context="com.indaco.stefan.firebasetesting.CreateListingActivity">
+        <ImageView
+            android:id="@+id/image"
+            android:layout_centerHorizontal="true"
+            android:src="@android:drawable/ic_menu_camera"
+            android:adjustViewBounds="true"
+            android:maxHeight="250dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/title"
+            android:hint="Title"
+            android:singleLine="true"
+            android:layout_below="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nextFocusDown="@+id/price"
+            style="@android:style/Widget.Holo.Light.EditText"/>
+        <EditText
+            android:id="@+id/price"
+            android:hint="price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/title"
+            android:nextFocusDown="@+id/description"
+            android:inputType="numberDecimal"
+            style="@android:style/Widget.Holo.Light.EditText"/>
+        <EditText
+            android:id="@+id/description"
+            android:hint="description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/price"
+            android:nextFocusDown="@+id/spinner"
+            style="@android:style/Widget.Holo.Light.EditText"/>
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/description"
+            style="@android:style/Widget.Holo.Light.Spinner"/>
+        <Button
+            android:id="@+id/submit"
+            android:text="Submit"
+            android:layout_below="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
+</ScrollView>
