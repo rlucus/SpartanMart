@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_message"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="xyz.spartanmart.spartanmart.ListingChatActivity">
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <RelativeLayout
+        android:id="@+id/header_container"
+        android:background="#64b5f6"
+        android:paddingTop="5dp"
+        android:paddingStart="20dp"
+        android:paddingBottom="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/item"
+            android:text="Item: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/price"
+            android:text="Price: "
+            android:layout_marginTop="2dp"
+            android:layout_below="@+id/item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/offer"
+            android:text="Offer: "
+            android:layout_marginTop="2dp"
+            android:layout_below="@+id/price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_below="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/footer_container" />
+    <RelativeLayout
+        android:id="@+id/footer_container"
+        android:background="#64b5f6"
+        android:layout_alignParentBottom="true"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:id="@+id/message_container"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/send"
+                android:text="Send"
+                android:layout_alignParentEnd="true"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp" />
+
+            <EditText
+                android:id="@+id/text_submission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFF"
+                android:textSize="14sp"
+                android:paddingStart="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:hint="Message User"
+                android:layout_centerInParent="true"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/send"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/offer_container"
+            android:orientation="horizontal"
+            android:layout_below="@+id/message_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/counter_offer"
+                android:hint="$0.00"
+                android:inputType="numberDecimal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/make_offer"
+                android:text="Make Offer"
+                android:layout_alignParentEnd="true"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp" />
+        </RelativeLayout>
+        <Button
+            android:id="@+id/accept_offer"
+            android:layout_below="@+id/offer_container"
+            android:layout_marginBottom="10dp"
+            android:text="Accept Offer"
+            android:background="#43a047"
+            android:layout_width="match_parent"
+            android:layout_height="35dp" />
+    </RelativeLayout>
+
+</RelativeLayout>

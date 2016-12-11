@@ -1,12 +1,12 @@
 package xyz.spartanmart.spartanmart.models;
 
-import android.net.Uri;
+import java.text.NumberFormat;
+import java.util.List;
 
 /**
  * Created by stefan on 10/27/2016.
  */
-
-public class Listing {
+public class Listing{
 
     private static final String TAG = Listing.class.getSimpleName();
 
@@ -17,7 +17,9 @@ public class Listing {
     private String creator;
     private String creatorId;
     private String description;
-    private Uri photoUrl;
+    private String photoUrl;
+    private boolean isActive;
+    private List<ChatRoomID> ChatRoomIDs;
 
     public Listing(){
 
@@ -35,7 +37,18 @@ public class Listing {
     }
 
     public void setPrice(String price) {
-        this.price = price;
+        this.price = formatOffer(price);
+    }
+
+    private String formatOffer(String counterOffer) {
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        String newOffer = counterOffer;
+        try {
+            newOffer = nf.format(Double.valueOf(counterOffer));
+        }catch (NumberFormatException ex){
+            ex.printStackTrace();
+        }
+        return newOffer;
     }
 
     public String getTitle() {
@@ -86,11 +99,31 @@ public class Listing {
         this.description = description;
     }
 
-    public Uri getPhotoUrl() {
+    public String getPhotoUrl() {
         return photoUrl;
     }
 
-    public void setPhotoUrl(Uri photoUrl) {
+    public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
     }
+
+    public List<ChatRoomID> getChatRoomIDs() {
+        return ChatRoomIDs;
+    }
+
+    public void setChatRoomIDs(List<ChatRoomID> chatRoomIDs) {
+        this.ChatRoomIDs = chatRoomIDs;
+    }
+
+    public boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean active) {
+        isActive = active;
+    }
+    public void isActive(boolean active){
+        isActive = active;
+    }
+
 }

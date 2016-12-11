@@ -48,7 +48,7 @@ public class CreateUserActivity extends AppCompatActivity {
         mConfirmET = (EditText) findViewById(R.id.password_confirm);
         mEmailET = (EditText) findViewById(R.id.email);
         mPasswordET = (EditText) findViewById(R.id.password);
-        mUsernameET = (EditText) findViewById(R.id.username);
+        mUsernameET = (EditText) findViewById(R.id.sellerName);
         mSubmit = (Button) findViewById(R.id.create_user);
 
         mAuth = FirebaseAuth.getInstance();
@@ -124,6 +124,8 @@ public class CreateUserActivity extends AppCompatActivity {
             DatabaseReference userRef = database.getReference().child("Users").child(uid);
             userRef.child("username").setValue(username);
             userRef.child("email").setValue(email);
+            userRef.child("password").setValue(password);
+            userRef.child("bank").setValue(20);
         }
     }
 

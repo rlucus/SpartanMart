@@ -8,6 +8,12 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="xyz.spartanmart.spartanmart.MainDrawerActivity"
     tools:showIn="@layout/app_bar_main_drawer">
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycleView"
         android:layout_width="match_parent"

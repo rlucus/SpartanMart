@@ -12,11 +12,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,7 +39,7 @@ import xyz.spartanmart.spartanmart.models.Listing;
 import xyz.spartanmart.spartanmart.models.UserModel;
 
 public class MainDrawerActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,SearchView.OnQueryTextListener {
 
     private static final String TAG = MainDrawerActivity.class.getSimpleName();
 
@@ -51,36 +53,49 @@ public class MainDrawerActivity extends AppCompatActivity
     private DrawerLayout mDrawer;
     private RecyclerView mRecycler;
     private ListingRecyclerAdapter mAdapter;
+    private ProgressBar mProgressBar;
 
     // Used to hold position in list of categories
     private int mCategoryPos=0;
+    private List<Listing> mAllListingsList = new ArrayList<>();
+    private List<Listing> mCategoryList = new ArrayList<>();
+
+    private boolean isBrowsingAll = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_drawer);
+        //getSupportActionBar().setTitle("SpartanMart");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setTitle("SpartanMart");
+
+
+        // Bind Views
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNavView = (NavigationView) findViewById(R.id.nav_view);
+        mRecycler = (RecyclerView) findViewById(R.id.recycleView);
+
 
         // Initialize Firebase Auth + Listener & check if use is logged in, if not, sent to login
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = listener();
 
         // Drawer is the physical drawer that slides in and out, Nav View is inside
-        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.setDrawerListener(toggle);
         toggle.syncState();
 
         // Nav View holds all the items + header
-        mNavView = (NavigationView) findViewById(R.id.nav_view);
         mNavView.setNavigationItemSelectedListener(this);
 
         // This will store the recycle view (list of listings)
         // Layout manager you have options of Linear(list), Grid(netflix-sih), & Staggered Grid
         // I set the adapter after downloadListings()
-        mRecycler = (RecyclerView) findViewById(R.id.recycleView);
         mRecycler.setLayoutManager(new LinearLayoutManager(this));
         downloadListings();
     }
@@ -125,6 +140,13 @@ public class MainDrawerActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main,menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+
+        if(searchItem!=null){
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            searchView.setOnQueryTextListener(this);
+        }
         return true;
     }
 
@@ -153,12 +175,24 @@ public class MainDrawerActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.nav_categories) {
-            showCategoryDialog();
-        } else if (id == R.id.nav_post_listing) {
-            // Start Activity to create listing
-
-            startActivity(new Intent(MainDrawerActivity.this,CreateListingActivity.class));
+        switch(id){
+            case R.id.nav_browse:
+                if(!isBrowsingAll) {
+                    mAdapter = new ListingRecyclerAdapter(this, mAllListingsList);
+                    mRecycler.setAdapter(mAdapter);
+                }
+                isBrowsingAll=true;
+                break;
+            case R.id.nav_categories:
+                isBrowsingAll=false;
+                showCategoryDialog();
+                break;
+            case R.id.nav_post_listing:
+                startActivity(new Intent(MainDrawerActivity.this,CreateListingActivity.class));
+                break;
+            case R.id.nav_my_listings:
+                showMyListings();
+                break;
         }
 
         // close the drawer when user presses item
@@ -206,6 +240,28 @@ public class MainDrawerActivity extends AppCompatActivity
      */
     private void handleCategorySelection(String category) {
         Log.d(TAG,"handleCategorySelection: "+category);
+        mCategoryList = new ArrayList<>();
+        for(Listing listing: mAllListingsList){
+            if(listing.getCategory().equals(category)){
+                mCategoryList.add(listing);
+            }
+        }
+
+        mAdapter = new ListingRecyclerAdapter(this,mCategoryList);
+        mRecycler.setAdapter(mAdapter);
+
+
+    }
+
+    private void showMyListings(){
+        List<Listing> myListings = new ArrayList<>();
+        for(Listing listing: mAllListingsList){
+            if(listing.getCreatorId().equals(UserModel.uid)){
+                myListings.add(listing);
+            }
+        }
+        mAdapter = new ListingRecyclerAdapter(this,myListings);
+        mRecycler.setAdapter(mAdapter);
     }
 
 
@@ -239,8 +295,8 @@ public class MainDrawerActivity extends AppCompatActivity
                 if(user !=null){
                     // User is signed in
                     Log.d(TAG,"onAuthStateChanged:signed_in: "+user.getUid());
+                    fetchUserFromFirebaseDatabase(user.getUid());
                     UserModel.setUser(user);
-                    updateUI(user);
                 }else{
                     // User is signed out
                     Log.d(TAG,"onAuthStateChanged:signed_out");
@@ -250,17 +306,41 @@ public class MainDrawerActivity extends AppCompatActivity
         };
     }
 
-    private void updateUI(FirebaseUser user) {
+    private void fetchUserFromFirebaseDatabase(final String uid) {
+
+        DatabaseReference userRef = mDatabase.getReference().child("Users").child(uid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                try {
+                    UserModel.uid = uid;
+                    UserModel.username = (String) dataSnapshot.child("username").getValue();
+                    Number number = (Number) dataSnapshot.child("bank").getValue();
+                    UserModel.bank = number.doubleValue();
+                    updateUI();
+                }catch (NullPointerException e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void updateUI() {
         // Get the header view within the Navigation View
         View headerView = mNavView.getHeaderView(0);
 
         // Bind the views to objects
         TextView email = (TextView) headerView.findViewById(R.id.email);
-        TextView username = (TextView) headerView.findViewById(R.id.username);
+        TextView username = (TextView) headerView.findViewById(R.id.sellerName);
 
         // update UI
-        email.setText(user.getEmail());
-        username.setText(user.getDisplayName());
+        email.setText(UserModel.email);
+        username.setText(UserModel.username);
     }
 
     /**
@@ -269,6 +349,7 @@ public class MainDrawerActivity extends AppCompatActivity
      */
     private void downloadListings() {
         Log.d(TAG,"downloadListings");
+        mProgressBar.setVisibility(View.VISIBLE);
         mDatabase = FirebaseDatabase.getInstance();
         DatabaseReference ref = mDatabase.getReference().child("Listing");
         Query query = ref.getRef().orderByChild("title");
@@ -285,19 +366,25 @@ public class MainDrawerActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG,"listingValueListener:onDataChanged: "+dataSnapshot);
-
+                setProgressBar(View.GONE);
                 // Create List to hold all the listings to pass to the recycler
                 // Iterate through the dataSnapshots children
                 // DataSnapshot looks liek a json array
-                List<Listing> list = new ArrayList<>();
+                mAllListingsList = new ArrayList<>();
                 Iterable<DataSnapshot> snapshotIterator = dataSnapshot.getChildren();
                 if(snapshotIterator!=null) {
                     for (DataSnapshot aSnapshotIterator : snapshotIterator) {
                         Listing listing = aSnapshotIterator.getValue(Listing.class);
                         Log.d(TAG,":listingValueListener:onDataChange: wordListId: "+listing.getTitle());
-                        list.add(listing);
+                        if(listing.getIsActive()) {
+                            Log.d(TAG,"getIsActive: true");
+                            mAllListingsList.add(listing);
+                        }else{
+                            Log.d(TAG,"getIsActive: false");
+                        }
                     }
-                    mAdapter = new ListingRecyclerAdapter(MainDrawerActivity.this,list);
+
+                    mAdapter = new ListingRecyclerAdapter(MainDrawerActivity.this, mAllListingsList);
                     mRecycler.setAdapter(mAdapter);
                 }else{
                     Log.d(TAG,":listingValueListener:onDataChange: empty snapshotIterator");
@@ -307,8 +394,44 @@ public class MainDrawerActivity extends AppCompatActivity
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.e(TAG,"onCancelled ",databaseError.toException());
+                setProgressBar(View.GONE);
             }
         };
     }
 
+    private void setProgressBar(final int visibility){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressBar.setVisibility(visibility);
+            }
+        });
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    private List<Listing> filter(List<Listing> list,String query){
+        query = query.toLowerCase();
+
+        final List<Listing> filteredList = new ArrayList<>();
+        for(Listing listing: list){
+            final String text = listing.getTitle().toLowerCase();
+            if(text.contains(query)){
+                filteredList.add(listing);
+            }
+        }
+        return filteredList;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        if(mAdapter!=null) {
+            mAdapter = new ListingRecyclerAdapter(this, filter(isBrowsingAll ? mAllListingsList : mCategoryList, query));
+            mRecycler.setAdapter(mAdapter);
+        }
+        return true;
+    }
 }

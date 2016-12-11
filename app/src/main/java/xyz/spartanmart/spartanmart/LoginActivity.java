@@ -27,6 +27,8 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import xyz.spartanmart.spartanmart.models.UserModel;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = LoginActivity.class.getSimpleName();
@@ -61,6 +63,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if(user !=null){
                     // User is signed in
                     Log.d(TAG,"onAuthStateChanged:signed_in: "+user.getUid());
+                    UserModel.setUser(user);
                     finish();
                 }else{
                     // User is signed out
