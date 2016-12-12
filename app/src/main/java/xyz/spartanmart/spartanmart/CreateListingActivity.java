@@ -145,10 +145,15 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         String id = isEditing ? mListing.getId() : mListingRef.getKey();
         String desc = mDescription.getText().toString().trim();
 
-        Listing listing = isEditing ? mListing : new Listing(price,title,category,id);
+        Listing listing = isEditing ? mListing : new Listing();
+        listing.setCategory(category);
         listing.setCreator(UserModel.username);
         listing.setCreatorId(UserModel.uid);
         listing.setDescription(desc);
+        listing.setId(id);
+        listing.setIsActive(true);
+        listing.setPrice(price);
+        listing.setTitle(title);
 
 
         if(mImageUri!=null) {

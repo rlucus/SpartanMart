@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#ffffff"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="@+id/container"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/listing_title"
+            android:text="Listing: "
+            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/listing"
+            android:text="listing"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#313131"
+            android:layout_marginStart="3dp"
+            android:layout_toEndOf="@+id/listing_title"
+            android:layout_alignBaseline="@+id/listing_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/seller_title"
+            android:text="Seller: "
+            android:layout_below="@+id/listing"
+            android:layout_marginTop="5dp"
+            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/seller"
+            android:text="seller"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#313131"
+            android:layout_toEndOf="@+id/seller_title"
+            android:layout_alignBaseline="@+id/seller_title"
+            android:layout_alignStart="@+id/listing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/offer_title"
+            android:text="Offer: "
+            android:textSize="14sp"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/seller"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/offer"
+            android:text="offer "
+            android:layout_toEndOf="@+id/offer_title"
+            android:layout_alignBaseline="@+id/offer_title"
+            android:layout_alignStart="@+id/listing"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#313131"
+            android:layout_marginTop="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+
+
+    <View
+        android:id="@+id/divider"
+        android:layout_below="@+id/container"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="2dp"
+        android:background="#d6d6d6"
+        android:layout_width="match_parent"
+        android:layout_height="1dp" />
+
+</RelativeLayout>

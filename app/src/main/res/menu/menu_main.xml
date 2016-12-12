@@ -10,9 +10,11 @@
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_signout"
+        android:id="@+id/action_refresh"
         android:orderInCategory="100"
-        android:title="LogOut"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_cached_white_24dp"
+        android:title="Refresh"
+        app:actionViewClass="ImageButton"
+        app:showAsAction="ifRoom"/>
 
 </menu>

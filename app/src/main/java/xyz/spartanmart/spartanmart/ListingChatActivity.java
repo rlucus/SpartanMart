@@ -337,7 +337,7 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
 
                 mBuyerRef.setValue(mBuyerBank);
                 mSellerRef.setValue(mSellerBank);
-                mChatRoomRef.child("getIsActive").setValue(false);
+                mChatRoomRef.child("isActive").setValue(false);
                 mDatabase.getReference().child("Listing").child(mChatRoom.getListingID()).child("isActive").setValue(false);
 
                 new AlertDialog.Builder(this)

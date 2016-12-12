@@ -1,7 +1,5 @@
 package xyz.spartanmart.spartanmart.models;
 
-import android.util.Log;
-
 
 /**
  * Created by stefan on 12/9/2016.
@@ -12,6 +10,7 @@ public class ChatRoom {
     private static final String TAG = ChatRoom.class.getSimpleName();
 
     //private List<Message> messages;
+    private String id = "";
     private String sellerID = "";
     private String sellerName = "";
     private String buyerID = "";
@@ -137,8 +136,16 @@ public class ChatRoom {
         return isActive;
     }
 
-    public void setActive(boolean active) {
+    public void setIsActive(boolean active) {
         isActive = active;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void setListing(Listing mListing) {
@@ -154,6 +161,7 @@ public class ChatRoom {
         setOffer(mListing.getPrice());
         setOfferBy(mListing.getCreatorId());
 
+        setIsActive(true);
         setBuyerAgree(false);
         setSellerAgree(false);
     }

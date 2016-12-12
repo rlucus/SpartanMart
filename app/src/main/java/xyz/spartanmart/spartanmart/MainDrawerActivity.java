@@ -158,8 +158,8 @@ public class MainDrawerActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
-            case R.id.action_signout:
-                signOut();
+            case R.id.action_refresh:
+                downloadListings();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -190,8 +190,15 @@ public class MainDrawerActivity extends AppCompatActivity
             case R.id.nav_post_listing:
                 startActivity(new Intent(MainDrawerActivity.this,CreateListingActivity.class));
                 break;
+            case R.id.nav_profile:
+                startActivity(new Intent(MainDrawerActivity.this,AccountActivity.class));
+                break;
             case R.id.nav_my_listings:
+                isBrowsingAll=false;
                 showMyListings();
+                break;
+            case R.id.nav_logout:
+                signOut();
                 break;
         }
 
