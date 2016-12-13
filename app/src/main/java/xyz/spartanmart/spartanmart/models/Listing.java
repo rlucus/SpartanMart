@@ -3,9 +3,6 @@ package xyz.spartanmart.spartanmart.models;
 import java.text.NumberFormat;
 import java.util.List;
 
-/**
- * Created by stefan on 10/27/2016.
- */
 public class Listing{
 
     private static final String TAG = Listing.class.getSimpleName();

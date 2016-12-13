@@ -3,10 +3,6 @@ package xyz.spartanmart.spartanmart.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by stefan on 12/9/2016.
- */
-
 public class Message implements Parcelable {
     private String message="";
     private String sender="";

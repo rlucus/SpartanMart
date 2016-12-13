@@ -17,6 +17,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -24,8 +26,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import xyz.spartanmart.spartanmart.models.UserModel;
 
@@ -36,6 +41,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mUserRef;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -133,9 +139,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             if (result.isSuccess()) {
                 GoogleSignInAccount account = result.getSignInAccount();
-                firebaseAuthWithGoogle(account);
+                String email = account.getEmail();
+                if(isValidEmail(email)) {
+                    firebaseAuthWithGoogle(account);
+                }else{
+                    signOut();
+                }
             }
         }
+    }
+
+    private void signOut() {
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(@NonNull Status status) {
+                Log.d(TAG,"signOut:onResult: "+status);
+            }
+        });
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -157,17 +177,51 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                     Toast.LENGTH_SHORT).show();
                         }else{
 
-                            // User was successfully added, use Uid to make a node in the 'Users' tab in firebase DB
+                            // User was successfully added, User is already in Authetnicated Users section
+                            // If this user doens't exist in the DB we need to add him/her
                             String uid = mAuth.getCurrentUser().getUid();
                             FirebaseDatabase database = FirebaseDatabase.getInstance();
-                            DatabaseReference userRef = database.getReference().child("Users").child(uid);
-                            userRef.child("username").setValue(task.getResult().getUser().getDisplayName());
-                            userRef.child("email").setValue(task.getResult().getUser().getEmail());
-                            finish();
+                            mUserRef = database.getReference().child("Users").child(uid);
+                            mUserRef.addListenerForSingleValueEvent(userListener(task));
+
                         }
                         // ...
                     }
                 });
+    }
+
+    private ValueEventListener userListener(final Task<AuthResult> task){
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(!dataSnapshot.exists()){
+                    // User doesn't exist in db, create the node
+                    Log.d(TAG,"userListener: user doesn't exist!");
+                    mUserRef.child("username").setValue(task.getResult().getUser().getDisplayName());
+                    mUserRef.child("email").setValue(task.getResult().getUser().getEmail());
+                    mUserRef.child("bank").setValue(100);
+                }
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    private boolean isValidEmail(String email){
+        String sjsuRegex = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@sjsu\\.edu";
+        if (TextUtils.isEmpty(email)) {
+            Toast.makeText(this, "Must have an email", Toast.LENGTH_SHORT).show();
+            return false;
+        }else if(!email.matches(sjsuRegex)){
+            Toast.makeText(this, "SJSU Email Required", Toast.LENGTH_SHORT).show();
+            return false;
+        }else{
+            return true;
+        }
     }
 
     private boolean isValid(String email, String password) {

@@ -16,10 +16,6 @@ import xyz.spartanmart.spartanmart.ListingChatActivity;
 import xyz.spartanmart.spartanmart.R;
 import xyz.spartanmart.spartanmart.models.ChatRoom;
 
-/**
- * Created by stefan on 12/11/2016.
- */
-
 public class InboxRecyclerAdapter extends RecyclerView.Adapter<InboxRecyclerAdapter.InboxViewHolder> {
 
     private static final String TAG = InboxRecyclerAdapter.class.getSimpleName();

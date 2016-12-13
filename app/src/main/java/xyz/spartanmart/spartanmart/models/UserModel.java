@@ -2,10 +2,6 @@ package xyz.spartanmart.spartanmart.models;
 
 import com.google.firebase.auth.FirebaseUser;
 
-/**
- * Created by stefan on 10/27/2016.
- */
-
 public class UserModel {
 
     public static String email="";

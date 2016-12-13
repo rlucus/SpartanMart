@@ -3,10 +3,6 @@ package xyz.spartanmart.spartanmart.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by stefan on 12/10/2016.
- */
-
 public class ChatRoomID implements Parcelable {
 
     private String chatroomID = "";

@@ -14,10 +14,6 @@ import java.util.List;
 import xyz.spartanmart.spartanmart.R;
 import xyz.spartanmart.spartanmart.models.Message;
 
-/**
- * Created by stefan on 12/10/2016.
- */
-
 public class ChatRecyclerAdapter extends RecyclerView.Adapter<ChatRecyclerAdapter.ChatViewHolder> {
 
     private static final String TAG = ChatRecyclerAdapter.class.getSimpleName();

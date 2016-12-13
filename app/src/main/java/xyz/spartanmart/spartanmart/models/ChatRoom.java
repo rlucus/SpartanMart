@@ -1,10 +1,5 @@
 package xyz.spartanmart.spartanmart.models;
 
-
-/**
- * Created by stefan on 12/9/2016.
- */
-
 public class ChatRoom {
 
     private static final String TAG = ChatRoom.class.getSimpleName();
