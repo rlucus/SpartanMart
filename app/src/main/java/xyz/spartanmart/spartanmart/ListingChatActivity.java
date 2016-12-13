@@ -98,6 +98,7 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void getOrigin() {
+        // Grab intent from calling Activity and any extras it has
         Intent intent = getIntent();
         if(intent.hasExtra("chatroomID")) {
             String chatroomID = intent.getStringExtra("chatroomID");
@@ -116,6 +117,11 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
+    /**
+     * Accept button changes based on firebase var 'offerBy', if current userID = 'offerBy',
+     * then 'isLocked'= true until the other user either accepts the offer or sends back a new one
+     * @param isLocked
+     */
     private void changeAcceptButton(boolean isLocked){
         if(!isLocked){
             mAcceptOffer.setBackgroundColor(Color.GREEN);
@@ -130,6 +136,10 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
+    /**
+     * Download ChatRoom from Firebase using chatroomID
+     * @param chatroomID
+     */
     private void fetchFirebaseData(String chatroomID) {
         // Fetch ChatRoom Data
         setProgressBar(View.VISIBLE);
@@ -153,6 +163,10 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         mOffer.setText(offer);
     }
 
+    /**
+     * Fetch Listing that the current chatroom is following
+     * @return
+     */
     private ValueEventListener listingListener(){
         return new ValueEventListener() {
             @Override
@@ -171,6 +185,12 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         };
     }
 
+    /**
+     * Download ChatRoom dataSnapshot. Reason ChatRoom isn't by object but per key:value pair is
+     * because the 'messages' isn't a list but a hashmap. There are various better ways to fix this
+     * but I chose this route
+     * @return
+     */
     private ValueEventListener chatRoomEventListener(){
         return new ValueEventListener() {
             @Override
@@ -211,6 +231,11 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         };
     }
 
+    /**
+     * Listener specifically for the messages being sent to-from users. when messages are received,
+     * they are added to the adapter
+     * @return
+     */
     private ChildEventListener messagesChildListener(){
         return new ChildEventListener() {
             @Override
@@ -243,25 +268,25 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         };
     }
 
-    private void updateMessages() {
-    }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()){
-            case R.id.send:
+            case R.id.send:         // Send message to chatroom
                 String message = mMessage.getText().toString().trim();
                 if(!message.isEmpty()){
                     checkChatRoomExists(message);
                 }
                 break;
-            case R.id.make_offer:
+            case R.id.make_offer:   // Send offer to user
                 String counterOffer = mCounterOffer.getText().toString().trim();
                 mCounterOffer.setText("");
                 if(counterOffer!=null && !counterOffer.equals("")){
                     counterOffer = formatOffer(counterOffer);
                     String dialogMessage = "Would you like to make an offer of "+counterOffer+"?";
                     final String finalOffer = counterOffer;
+
+                    // Create dialog about the offer being made
                     new AlertDialog.Builder(this)
                             .setTitle("Make Offer")
                             .setMessage(dialogMessage)
@@ -277,7 +302,7 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
                     Toast.makeText(this, "There was a format issue with your input", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case R.id.accept_offer:
+            case R.id.accept_offer: // Accept offer made
                 final String offer = mChatRoom.getOffer();
                 String dialogMessage = "Please Confirm that you are accepting the offer of "+offer;
                 new AlertDialog.Builder(this)
@@ -295,6 +320,9 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
+    /**
+     * fetch bank totals from users
+     */
     private void setBanks(){
         mSellerRef = mDatabase.getReference().child("Users").child(mChatRoom.getSellerID()).child("bank");
         mBuyerRef = mDatabase.getReference().child("Users").child(mChatRoom.getBuyerID()).child("bank");
@@ -335,6 +363,7 @@ public class ListingChatActivity extends AppCompatActivity implements View.OnCli
                 mBuyerBank = mBuyerBank-offer_d;
                 mSellerBank = mSellerBank+ offer_d;
 
+                // Change their accounts
                 mBuyerRef.setValue(mBuyerBank);
                 mSellerRef.setValue(mSellerBank);
                 mChatRoomRef.child("isActive").setValue(false);

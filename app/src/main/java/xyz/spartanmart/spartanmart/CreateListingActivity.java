@@ -25,23 +25,16 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -120,6 +113,7 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.submit:
+                // Grab Strings from  TextViews, trim the ends of whitespace, and create listing
                 String title = mTitle.getText().toString().trim();
                 String price = mPrice.getText().toString().trim();
                 if (isValid(title, price)&& !mCategory.equals("")) {
@@ -127,14 +121,23 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
                 }
                 break;
             case R.id.image:
+                // Take Photo
                 takePicture();
                 break;
         }
     }
 
+    /**
+     * Create new listing and prepare to upload to firebase
+     * @param title     : title set by user
+     * @param price     : price set by user
+     * @param category  : category set by user
+     */
     private void createListing(String title, String price, String category) {
         Log.d(TAG,"createListing: "+title+", "+price+", "+category);
         mDatabase = FirebaseDatabase.getInstance();
+
+        // Check if user is editing an existing listing or is creating  new one
         if(!isEditing) {
             mListingRef = mDatabase.getReference().child("Listing").push();
 
@@ -145,6 +148,7 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         String id = isEditing ? mListing.getId() : mListingRef.getKey();
         String desc = mDescription.getText().toString().trim();
 
+        // Create new listing & prepare to upload it
         Listing listing = isEditing ? mListing : new Listing();
         listing.setCategory(category);
         listing.setCreator(UserModel.username);
@@ -155,16 +159,20 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         listing.setPrice(price);
         listing.setTitle(title);
 
-
+        // Check if user set a photo or not
         if(mImageUri!=null) {
-            //storeImage(id,listing);
             encodeBitmapAndSaveToFirebase(listing);
         }else{
             Log.d(TAG,"no image");
             mListingRef.setValue(listing);
+            finish();
         }
     }
 
+    /**
+     * Encode the image to a string and upload to firebase, 'finish()' to close activity
+     * @param listing
+     */
     public void encodeBitmapAndSaveToFirebase(final Listing listing) {
         mImageView.setDrawingCacheEnabled(true);
         mImageView.buildDrawingCache();
@@ -184,6 +192,13 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
 
     }
 
+    /**
+     * Spinner that controls the Category picked
+     * @param adapterView
+     * @param view
+     * @param position
+     * @param l
+     */
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
         mCategory= String.valueOf(adapterView.getItemAtPosition(position));
@@ -195,6 +210,7 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         Log.d(TAG,"onNothingSelected");
     }
 
+    // Check that the input is valid, requires a title and a price
     private boolean isValid(String title, String price) {
         boolean valid = true;
 
@@ -216,6 +232,9 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         return valid;
     }
 
+    /**
+      * Start Activity to take a picture. When photo is take, it calls onActivityResult()
+      */
     private void takePicture() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if(checkMicrophonePermissions()) {
@@ -226,6 +245,11 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         }
     }
 
+    /**
+     * On phones with api >24, the phone requires the user give the app permission to use the
+     * camera and external storage
+     * @return
+     */
     private boolean checkMicrophonePermissions() {
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
@@ -263,6 +287,10 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
                 "IMG_"+ timeStamp + ".png");
     }
 
+    /**
+     * Get information passed from a previous activity
+     * 'MainDrawerActivity' or 'ListingChatActivity'
+     */
     public void getOrigin() {
         Intent intent = getIntent();
         if(intent.hasExtra("listingID")){
@@ -316,6 +344,12 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
         }
     }
 
+    /**
+     * Decode string from firebase into a useable Bitmap
+     * @param image     : encoded image
+     * @return
+     * @throws IOException
+     */
     private static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
         byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);

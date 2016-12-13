@@ -11,12 +11,11 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.ViewFlipper;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,8 +39,7 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
 
     // Views
     private TextView mSellerTV, mTitleTV, mPriceTV, mDescriptionTV;
-    private ListView mListView;
-    private ViewFlipper mViewFlipper;
+    private Button mMessage;
     private ImageView mImage;
     private ProgressBar mProgressBar;
     private RelativeLayout mButtonContainer;
@@ -51,7 +49,7 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
     private DatabaseReference mListingRef;
 
     // internal variables
-    private List<ChatRoomID> mChatRoommList;
+    private List<ChatRoomID> mChatRoomIDList;
     private Listing mListing;
     private boolean isOwner=false;
 
@@ -59,18 +57,17 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing_details);
-
+        getSupportActionBar().setTitle("Listing Details");
         // Firebase
         mDatabase = FirebaseDatabase.getInstance();
 
         // Bind Views to objects
+        mMessage = (Button) findViewById(R.id.message);
         mSellerTV = (TextView) findViewById(R.id.seller);
         mTitleTV = (TextView) findViewById(R.id.title);
         mPriceTV = (TextView) findViewById(R.id.price);
         mDescriptionTV = (TextView) findViewById(R.id.description);
-        mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
         mImage = (ImageView) findViewById(R.id.image);
-        mListView = (ListView) findViewById(R.id.listView);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mButtonContainer = (RelativeLayout) findViewById(R.id.button_container);
 
@@ -78,7 +75,7 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
         getOrigin();
 
         // set whether the list of interested buyers is shown or the message button
-        mViewFlipper.setDisplayedChild(isOwner ? 0 : 1);
+        //mViewFlipper.setDisplayedChild(isOwner ? 0 : 1);
 
         // when buttons are clicked, do something
         findViewById(R.id.edit).setOnClickListener(this);
@@ -86,18 +83,6 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
         findViewById(R.id.message).setOnClickListener(this);
     }
 
-    private void createListView() {
-        mChatRoommList = mListing.getChatRoomIDs();
-        if(mChatRoommList!=null){
-            ArrayList<String> list = new ArrayList<>();
-            for(int i=0;i<mChatRoommList.size();i++){
-                list.add(mChatRoommList.get(0).getBuyerName());
-            }
-
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,list);
-            mListView.setAdapter(adapter);
-        }
-    }
 
 
     @Override
@@ -148,31 +133,58 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
     }
 
     private void startMessageActivity() {
-        Intent intent = new Intent(this,ListingChatActivity.class);
-        boolean matchFound=false;
-        List<ChatRoomID> IDlist = mListing.getChatRoomIDs();
-        // If there Chatroom ID's exist in database, iterate through them for matching userID
-        if(IDlist!=null) {
-            Log.d(TAG,"startMessageActivity: mChatRoomList!=null");
-            for (ChatRoomID chatRoomID : IDlist) {
-                Log.d(TAG,"startMessageActivity: chatroomBuyerID: "+chatRoomID.getBuyerID()+", "+chatRoomID.getBuyerName());
-                if (chatRoomID.getBuyerID().equals(UserModel.uid)) {
-                    Log.d(TAG, "startMessageActivity, found match");
-                    matchFound = true;
-                    // There is an existing chatroom, load it up
-                    intent.putExtra("chatroomID", chatRoomID.getChatroomID());
-                    startActivity(intent);
-                    break;
+        if(!isOwner) {
+            Intent intent = new Intent(this, ListingChatActivity.class);
+            boolean matchFound = false;
+            List<ChatRoomID> IDlist = mListing.getChatRoomIDs();
+            // If there Chatroom ID's exist in database, iterate through them for matching userID
+            if (IDlist != null) {
+                Log.d(TAG, "startMessageActivity: mChatRoomList!=null");
+                for (ChatRoomID chatRoomID : IDlist) {
+                    Log.d(TAG, "startMessageActivity: chatroomBuyerID: " + chatRoomID.getBuyerID() + ", " + chatRoomID.getBuyerName());
+                    if (chatRoomID.getBuyerID().equals(UserModel.uid)) {
+                        Log.d(TAG, "startMessageActivity, found match");
+                        matchFound = true;
+                        // There is an existing chatroom, load it up
+                        intent.putExtra("chatroomID", chatRoomID.getChatroomID());
+                        startActivity(intent);
+                        break;
+                    }
                 }
+            } else {
+                Log.d(TAG, "startMessageActivity: IDlist");
+            }
+            // If no chatroom ID's exist or no match is found, send the whole listing
+            if (!matchFound) {
+                Log.d(TAG, "startMessageActivity: no match found");
+                intent.putExtra("listingID", mListing.getId());
+                startActivity(intent);
             }
         }else{
-            Log.d(TAG,"startMessageActivity: IDlist");
-        }
-        // If no chatroom ID's exist or no match is found, send the whole listing
-        if(!matchFound) {
-            Log.d(TAG, "startMessageActivity: no match found");
-            intent.putExtra("listingID", mListing.getId());
-            startActivity(intent);
+            mChatRoomIDList = mListing.getChatRoomIDs();
+            if(mChatRoomIDList !=null){
+                ArrayList<String> list = new ArrayList<>();
+                for(int i = 0; i< mChatRoomIDList.size(); i++){
+                    list.add(mChatRoomIDList.get(i).getBuyerName());
+                }
+                CharSequence[] items = list.toArray(new CharSequence[list.size()]);
+                Log.d(TAG,"createListView size: "+list.size());
+
+                new AlertDialog.Builder(this)
+                        .setTitle("ChatRooms")
+                        .setItems(items, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int position) {
+                                String chatRoomId = mChatRoomIDList.get(position).getChatroomID();
+                                Intent intent = new Intent(ListingDetailsActivity.this,ListingChatActivity.class);
+                                intent.putExtra("chatroomID",chatRoomId);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Cancel",null)
+                        .show();
+
+            }
         }
     }
 
@@ -187,7 +199,7 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
         // Alternative option is store the listing as a static object in a class
         mProgressBar.setVisibility(View.VISIBLE);
         mListingRef = mDatabase.getReference().child("Listing").child(listingID);
-        mListingRef.addListenerForSingleValueEvent(listingListener());
+        mListingRef.addValueEventListener(listingListener());
 
         //updateView();
     }
@@ -222,7 +234,7 @@ public class ListingDetailsActivity extends AppCompatActivity implements View.On
                 setProgressBar(View.GONE);
                 mListing = dataSnapshot.getValue(Listing.class);
                 if(isOwner){
-                    createListView();
+                    mMessage.setText("Interested Buyers");
                 }else{
                     mButtonContainer.setVisibility(View.GONE);
                 }

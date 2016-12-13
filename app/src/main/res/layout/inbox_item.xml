@@ -47,11 +47,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView
+            android:id="@+id/buyer_title"
+            android:text="Buyer: "
+            android:layout_below="@+id/seller"
+            android:layout_marginTop="5dp"
+            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/buyer"
+            android:text="buyer"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#313131"
+            android:layout_toEndOf="@+id/buyer_title"
+            android:layout_alignBaseline="@+id/buyer_title"
+            android:layout_alignStart="@+id/listing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
             android:id="@+id/offer_title"
             android:text="Offer: "
             android:textSize="14sp"
             android:layout_marginTop="5dp"
-            android:layout_below="@+id/seller"
+            android:layout_below="@+id/buyer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <TextView

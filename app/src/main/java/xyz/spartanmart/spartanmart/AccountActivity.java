@@ -24,6 +24,7 @@ import java.util.List;
 
 import xyz.spartanmart.spartanmart.adapters.InboxRecyclerAdapter;
 import xyz.spartanmart.spartanmart.models.ChatRoom;
+import xyz.spartanmart.spartanmart.models.Listing;
 import xyz.spartanmart.spartanmart.models.UserModel;
 
 public class AccountActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
@@ -34,6 +35,7 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
     private TextView mUsername, mEmail, mNoContent;
     private RecyclerView mRecycler;
     private InboxRecyclerAdapter mAdapter;
+    private SearchView mSearchView;
     private ProgressBar mProgressBar;
 
     // Firebase
@@ -47,6 +49,7 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
+        getSupportActionBar().setTitle("Account");
 
         // Bind Views
         mUsername = (TextView) findViewById(R.id.username);
@@ -54,6 +57,7 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
         mNoContent = (TextView) findViewById(R.id.no_content);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mRecycler = (RecyclerView) findViewById(R.id.recyclerView);
+        mSearchView = (SearchView) findViewById(R.id.searchView);
         mRecycler.setLayoutManager(new LinearLayoutManager(this));
 
         // Set Views
@@ -64,6 +68,8 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
         mDatabase = FirebaseDatabase.getInstance();
         mChatRoomsRef = mDatabase.getReference().child("Chatrooms");
         fetchChatRooms();
+
+        mSearchView.setOnQueryTextListener(this);
     }
 
     private void fetchChatRooms() {
@@ -99,6 +105,7 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
                         ChatRoom chatRoom = new ChatRoom();
 
                         try {
+                            // Download all key:value pairs for chatroom, there are more efficient ways to do this
                             chatRoom.setId(aSnapshotIterator.getKey());
                             chatRoom.setBuyerAgree((boolean) aSnapshotIterator.child("buyerAgree").getValue());
                             chatRoom.setBuyerID((String) aSnapshotIterator.child("buyerID").getValue());
@@ -131,6 +138,8 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
                         }
                     }
 
+                    // Because this is in a network callback, i set this in the UI thread
+                    // errors arise due to Views being changed on separate thread
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -160,6 +169,7 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
         };
     }
 
+    /** Check for Duplicates before adding them to list in Recycler */
     private boolean isDuplicate(ChatRoom input_chatRoom) {
         for(ChatRoom chatRoom: mChatRoomList){
             if(chatRoom.getId().equals(input_chatRoom.getId())){
@@ -170,15 +180,28 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
         return false;
     }
 
+    /**
+     * Creates 'Refresh' button in top right corner of actionbar
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main,menu);
+        getMenuInflater().inflate(R.menu.menu_account,menu);
+        return true;
+    }
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-
-        if(searchItem!=null){
-            SearchView searchView = (SearchView) searchItem.getActionView();
-            searchView.setOnQueryTextListener(this);
+    /**
+     * When user presses the refresh button, download all the chatrooms
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_refresh:
+                fetchChatRooms();
+                break;
         }
         return true;
     }
@@ -189,7 +212,29 @@ public class AccountActivity extends AppCompatActivity implements SearchView.OnQ
     }
 
     @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
+    public boolean onQueryTextChange(String query) {
+        if(mAdapter!=null) {
+            mAdapter = new InboxRecyclerAdapter(this, filter(mChatRoomList, query));
+            mRecycler.setAdapter(mAdapter);
+        }
+        return true;
+    }
+
+    /**
+     * Not a very efficient way of filtering through a recycler list but it works
+     * @param list  : list of all words currently in inbox
+     * @param query : query user entered in
+     * @return
+     */
+    private List<ChatRoom> filter(List<ChatRoom> list, String query){
+        query = query.toLowerCase();
+        final List<ChatRoom> filteredList = new ArrayList<>();
+        for(ChatRoom chatroom: list){
+            final String text = chatroom.getListingName().toLowerCase();
+            if(text.contains(query)){
+                filteredList.add(chatroom);
+            }
+        }
+        return filteredList;
     }
 }
