@@ -1,6 +1,7 @@
 package xyz.spartanmart.spartanmart;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -122,7 +123,16 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
                 break;
             case R.id.image:
                 // Take Photo
-                takePicture();
+                if(checkMicrophonePermissions()) {
+                    try {
+                        ContentValues values = new ContentValues(1);
+                        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+                        mImageUri = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                        takePicture();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 break;
         }
     }
@@ -237,9 +247,12 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
       */
     private void takePicture() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         if(checkMicrophonePermissions()) {
-            mImageUri = Uri.fromFile(getOutputMediaFile());
+            //mImageUri = Uri.fromFile(getOutputMediaFile());
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+            intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY,1);
 
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
@@ -249,11 +262,15 @@ public class CreateListingActivity extends AppCompatActivity implements View.OnC
      * On phones with api >24, the phone requires the user give the app permission to use the
      * camera and external storage
      * @return
+     *
+     * Nexus Strict Mode problem HERE
+     *
      */
     private boolean checkMicrophonePermissions() {
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
             Log.d(TAG,":checkMicrophonePermissions: false");
             return false;
         }else{
